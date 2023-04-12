@@ -1,1 +1,1 @@
-# datascience-repo
+# Data Science Courses Repository
