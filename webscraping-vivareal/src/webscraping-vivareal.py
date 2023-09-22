@@ -9,19 +9,12 @@ import requests
 from bs4 import BeautifulSoup
 import seaborn as sns
 import matplotlib.pyplot as plt
-import plotly.graph_objects as go
-import plotly.express as px
-from xgboost import XGBRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
+
 
 # from urllib.request import urlopen, Request
 # from urllib.error import URLError, HTTPError
 
+# Printando versões das dependências
 print("BeautifulSoup: ", bs4.__version__)
 print("urllib: ", urllib_request.__version__)
 print("Pandas:  ", pd.__version__)
@@ -102,14 +95,14 @@ class tratamento:
     def __init__(self, data) -> None:
         self.data = data
 
-    def alterarinfos (self):
+    def alterarinfos(self):
         self.data['preco'] = self.data['preco'].str.extract(r'(\d+\.\d+|\d+)')
         self.data['metros'] = self.data['metros'].str.extract(r'(\d+)')
         self.data['qtdquartos'] = self.data['qtdquartos'].str.extract(r'(\d+)')
         self.data['qtdbanheiros'] = self.data['qtdbanheiros'].str.extract(r'(\d+)')
         return self.data
 
-    def incluir (self):
+    def incluir(self):
         self.data = self.data.assign(tipo_imovel="")
         
         # Alocar tipo de imóvel
@@ -154,7 +147,7 @@ print(data.isnull().sum())
 print('\n-----------------------------------------------')
 print(data.describe(include='all'))
 print('\n-----------------------------------------------')
-print(df.keys())
+print(data.keys())
 
 
 #%%
@@ -176,6 +169,9 @@ data['qtdbanheiros'] = data['qtdbanheiros'].astype(int)
 data['tipo_imovel'] = data['tipo_imovel'].astype(str)
 data['estado'] = data['estado'].astype(str)
 
+#%%
+
+print(data.info())
 
 #%%
 
@@ -184,56 +180,7 @@ data['estado'] = data['estado'].astype(str)
 plt.figure(figsize = (15, 8))
 ax = sns.countplot(x='estado', data=data, palette="hls")
 ax.bar_label(ax.containers[0]);
-
-#%%
-
-
-
-#%%
-# Machine Learning
-
-# Definindo as features e a variável target
-X = data[['qtdquartos', 'qtdbanheiros', 'estado']]
-y = data['preco'] # Target
-
-# Definindo os pré-processadores
-numeric_imputer = SimpleImputer(strategy='constant', fill_value=0)
-categorical_imputer = SimpleImputer(strategy='most_frequent')
-
-# Definindo o pipeline de pré-processamento
-preprocessor = ColumnTransformer(
-    transformers=[
-        ('num', numeric_imputer, ['qtdquartos', 'qtdbanheiros']),
-        ('cat', categorical_imputer, ['estado'])
-    ]
-)
-
-# Criando o pipeline completo
-pipeline = Pipeline(
-    steps=[
-    ('preprocessor', preprocessor),
-    ('encoder', OneHotEncoder()),
-    ('model', XGBRegressor())
-    ]
-)
-
-#%%
-# Dividindo os dados em conjuntos de treinamento e teste
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Treinando o pipeline completo
-pipeline.fit(X_train, y_train)
-
-# Fazendo previsões com o conjunto de teste
-y_pred = pipeline.predict(X_test)
-
-# Avaliando o modelo
-mse = mean_squared_error(y_test, y_pred)
-r2 = r2_score(y_test, y_pred)
-
-print(f"MSE: {mse}")
-print(f"R^2: {r2}")
-
+plt.title('Contagem de imóveis por estado', fontsize=20)
 
 # %%
 
